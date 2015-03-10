@@ -186,7 +186,7 @@ public class SoundMonitor extends CordovaPlugin {
 
         if (mRecorder != null) {
             double pressure = mRecorder.getMaxAmplitude() / 51805.5336;
-            return 20 * Math.log10(pressure / (2*Math.pow(10, -7)));
+            return 20 * Math.log10(pressure / (2*Math.pow(10, -5)));
         } else {
             return 0;
         }
