@@ -44,10 +44,6 @@ public class SoundMonitor extends CordovaPlugin {
     private MediaRecorder mRecorder = null;
     private double mEMA = 0.0;
 
-    private File file = null;
-        static final String PREFIX = "record";
-        static final String EXTENSION = ".3gpp";
-
     private CallbackContext callbackContext;
 
     public SoundMonitor() {
@@ -121,13 +117,21 @@ public class SoundMonitor extends CordovaPlugin {
             mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
             mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-            if (file == null) {
-                File rootDir = Environment.getExternalStorageDirectory();
-                file = File.createTempFile(PREFIX, EXTENSION, rootDir);
+            mRecorder.setOutputFile("/dev/null");
+
+            try
+            {
+                mRecorder.prepare();
+            }catch (java.io.IOException ioe) {
+
+            }catch (java.lang.SecurityException e) {
             }
-            mRecorder.setOutputFile(file.getAbsolutePath().substring(8));
-            mRecorder.prepare();
-            mRecorder.start();
+            try
+            {
+                mRecorder.start();
+            }catch (java.lang.SecurityException e) {
+            }
+
             mEMA = 0.0;
         }
 
@@ -214,7 +218,7 @@ public class SoundMonitor extends CordovaPlugin {
         double amp = getAmplitude();
         mEMA = EMA_FILTER * amp + (1.0 - EMA_FILTER) * mEMA;
 
-        obj.put("value", mEMA);
+        obj.put("value", 20 * Math.log10(mEMA) / Math.pow(10, -7));
         obj.put("timestamp", this.timeStamp);
 
         return obj;
