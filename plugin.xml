@@ -25,6 +25,11 @@
                 <param name="android-package" value="plugin.samz.soundmonitor.SoundMonitor" />
             </feature>
         </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <uses-permission android:name="android.permission.RECORD_AUDIO" />
+        </config-file>
+
         <source-file src="src/android/SoundMonitor.java" target-dir="src/plugin/samz/soundmonitor/SoundMonitor" />
     </platform>
 </plugin>
