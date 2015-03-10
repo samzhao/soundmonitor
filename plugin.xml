@@ -7,6 +7,14 @@
     <keywords>cordova,sound,monitor</keywords>
     <repo>https://github.com/samzhao/soundmonitor.git</repo>
 
+    <js-module name="SoundMonitorError" src="www/SoundMonitorError.js">
+        <clobbers target="SoundMonitorError" />
+    </js-module>
+
+    <js-module name="SoundMonitorAmplitude" src="www/SoundMonitorAmplitude.js">
+        <clobbers target="SoundMonitorAmplitude" />
+    </js-module>
+
     <js-module name="SoundMonitor" src="www/SoundMonitor.js">
         <clobbers target="cordova.plugins.SoundMonitor" />
     </js-module>
