@@ -44,6 +44,10 @@ public class SoundMonitor extends CordovaPlugin {
     private MediaRecorder mRecorder = null;
     private double mEMA = 0.0;
 
+    private File file = null;
+        static final String PREFIX = "record";
+        static final String EXTENSION = ".3gpp";
+
     private CallbackContext callbackContext;
 
     public SoundMonitor() {
@@ -117,7 +121,11 @@ public class SoundMonitor extends CordovaPlugin {
             mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
             mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-            mRecorder.setOutputFile(this.file.getAbsolutePath().substring(8));
+            if (file == null) {
+                File rootDir = Environment.getExternalStorageDirectory();
+                file = File.createTempFile(PREFIX, EXTENSION, rootDir);
+            }
+            mRecorder.setOutputFile(file.getAbsolutePath().substring(8));
             mRecorder.prepare();
             mRecorder.start();
             mEMA = 0.0;
