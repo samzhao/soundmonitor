@@ -39,6 +39,11 @@ public class SoundMonitor extends CordovaPlugin {
     long timeStamp;
     long lastAccessTime;
 
+    static final private double EMA_FILTER = 0.6;
+
+    private MediaRecord mRecorder = null;
+    private double mEMA = 0.0;
+
     private CallbackContext callbackContext;
 
     public SoundMonitor() {
@@ -103,9 +108,20 @@ public class SoundMonitor extends CordovaPlugin {
             return this.status;
         }
 
-        minSize = AudioRecord.getMinBufferSize(8000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-        ar = new AudioRecord(MediaRecorder.AudioSource.MIC, 8000,AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT,minSize);
-        ar.startRecording();
+        // minSize = AudioRecord.getMinBufferSize(8000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+        // ar = new AudioRecord(MediaRecorder.AudioSource.MIC, 8000,AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT,minSize);
+        // ar.startRecording();
+
+        if (mRecorder == null) {
+            mRecorder = new MediaRecorder();
+            mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mRecorder.setOutputFormat(MediaRecorder.OutputForm.MUXER_OUTPUT_MPEG_4);
+            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+            mRecorder.setOutputFile("/dev/null");
+            mRecorder.prepare();
+            mRecorder.start();
+            mEMA = 0.0;
+        }
 
         this.lastAccessTime = System.currentTimeMillis();
         this.setStatus(SoundMonitor.STARTING);
@@ -117,19 +133,17 @@ public class SoundMonitor extends CordovaPlugin {
         if (this.status != SoundMonitor.STOPPED) {
         }
 
-        if (ar != null) {
-            ar.stop();
+        // if (ar != null) {
+        //     ar.stop();
+        // }
+
+        if (mRecorder != null) {
+            mRecorder.stop();
+            mRecorder.release();
+            mRecorder = null;
         }
 
         this.setStatus(SoundMonitor.STOPPED);
-    }
-
-    private JSONObject getLightLumen() throws JSONException {
-        JSONObject obj = new JSONObject();
-        obj.put("value", this.getAmplitude());
-        obj.put("timestamp", this.timeStamp);
-
-        return obj;
     }
 
     private void timeout() {
@@ -147,15 +161,22 @@ public class SoundMonitor extends CordovaPlugin {
 
     public double getAmplitude() {
         this.lastAccessTime = System.currentTimeMillis();
-        short[] buffer = new short[minSize];
-        ar.read(buffer, 0, minSize);
-        int max = 0;
-        for (short s : buffer) {
-            if (Math.abs(s) > max) {
-                max = Math.abs(s);
-            }
+
+        // short[] buffer = new short[minSize];
+        // ar.read(buffer, 0, minSize);
+        // int max = 0;
+        // for (short s : buffer) {
+        //     if (Math.abs(s) > max) {
+        //         max = Math.abs(s);
+        //     }
+        // }
+        // return max;
+
+        if (mRecorder != null) {
+            return (mRecorder.getMaxAmplitude()/2700.0);
+        } else {
+            return 0;
         }
-        return max;
     }
 
     public void setTimeout(long timeout) {
@@ -173,16 +194,19 @@ public class SoundMonitor extends CordovaPlugin {
     private JSONObject getSoundAmplitude() throws JSONException {
         JSONObject obj = new JSONObject();
 
-        short[] buffer = new short[minSize];
-        ar.read(buffer, 0, minSize);
-        int max = 0;
-        for (short s : buffer) {
-            if (Math.abs(s) > max) {
-                max = Math.abs(s);
-            }
-        }
+        // short[] buffer = new short[minSize];
+        // ar.read(buffer, 0, minSize);
+        // int max = 0;
+        // for (short s : buffer) {
+        //     if (Math.abs(s) > max) {
+        //         max = Math.abs(s);
+        //     }
+        // }
 
-        obj.put("value", max);
+        double amp = getAmplitude();
+        eEMA = EMA_FILTER * amp + (1.0 - EMA_FILTER) * mEMA;
+
+        obj.put("value", mEMA);
         obj.put("timestamp", this.timeStamp);
 
         return obj;
