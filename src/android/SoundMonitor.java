@@ -117,7 +117,7 @@ public class SoundMonitor extends CordovaPlugin {
             mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
             mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-            mRecorder.setOutputFile("/dev/null");
+            mRecorder.setOutputFile(this.file.getAbsolutePath().substring(8));
             mRecorder.prepare();
             mRecorder.start();
             mEMA = 0.0;
