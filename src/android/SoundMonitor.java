@@ -185,7 +185,7 @@ public class SoundMonitor extends CordovaPlugin {
         // return max;
 
         if (mRecorder != null) {
-            return 20 * Math.log10(mRecorder.getMaxAmplitude()/2700.0);
+            return 10 * Math.log10(mRecorder.getMaxAmplitude());
         } else {
             return 0;
         }
