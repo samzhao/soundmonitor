@@ -6,7 +6,7 @@ var SoundMonitorError = require('./SoundMonitorError');
 
 var timers = {};
 var SoundMonitor = {
-    getCurrentAmplitude.function(successCallback, errorCallback, options) {
+    getCurrentAmplitude: function(successCallback, errorCallback, options) {
         argscheck.checkArgs('fFO', 'SoundMonitor.getCurrentAmplitude', arguments);
 
         var win = function (result) {
@@ -39,7 +39,7 @@ var SoundMonitor = {
         }
 
         return id;
-    };
+    },
 
     clearWatch: function(id) {
         if (id && timers[id]) {
