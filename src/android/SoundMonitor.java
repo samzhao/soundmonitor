@@ -218,7 +218,7 @@ public class SoundMonitor extends CordovaPlugin {
         double amp = getAmplitude();
         mEMA = EMA_FILTER * amp + (1.0 - EMA_FILTER) * mEMA;
 
-        obj.put("value", 20 * Math.log10(mEMA / 32767.0));
+        obj.put("value", mEMA);
         obj.put("timestamp", this.timeStamp);
 
         return obj;
