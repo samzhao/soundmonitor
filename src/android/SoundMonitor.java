@@ -41,7 +41,7 @@ public class SoundMonitor extends CordovaPlugin {
 
     static final private double EMA_FILTER = 0.6;
 
-    private MediaRecord mRecorder = null;
+    private MediaRecorder mRecorder = null;
     private double mEMA = 0.0;
 
     private CallbackContext callbackContext;
@@ -115,7 +115,7 @@ public class SoundMonitor extends CordovaPlugin {
         if (mRecorder == null) {
             mRecorder = new MediaRecorder();
             mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-            mRecorder.setOutputFormat(MediaRecorder.OutputForm.MUXER_OUTPUT_MPEG_4);
+            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MUXER_OUTPUT_MPEG_4);
             mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
             mRecorder.setOutputFile("/dev/null");
             mRecorder.prepare();
@@ -204,7 +204,7 @@ public class SoundMonitor extends CordovaPlugin {
         // }
 
         double amp = getAmplitude();
-        eEMA = EMA_FILTER * amp + (1.0 - EMA_FILTER) * mEMA;
+        mEMA = EMA_FILTER * amp + (1.0 - EMA_FILTER) * mEMA;
 
         obj.put("value", mEMA);
         obj.put("timestamp", this.timeStamp);
