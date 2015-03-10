@@ -185,7 +185,7 @@ public class SoundMonitor extends CordovaPlugin {
         // return max;
 
         if (mRecorder != null) {
-            return 20 * Math.log10(mRecorder.getMaxAmplitude()/32767.0);
+            return 20 * Math.log10(mRecorder.getMaxAmplitude()/2700.0);
         } else {
             return 0;
         }
@@ -216,9 +216,9 @@ public class SoundMonitor extends CordovaPlugin {
         // }
 
         double amp = getAmplitude();
-        mEMA = EMA_FILTER * amp + (1.0 - EMA_FILTER) * mEMA;
+        // mEMA = EMA_FILTER * amp + (1.0 - EMA_FILTER) * mEMA;
 
-        obj.put("value", mEMA);
+        obj.put("value", amp);
         obj.put("timestamp", this.timeStamp);
 
         return obj;
