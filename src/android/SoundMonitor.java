@@ -24,6 +24,14 @@ import android.os.Looper;
  */
 public class SoundMonitor extends CordovaPlugin {
 
+    private static final String TAG = "AudioRecord";
+    static final int SAMPLE_RATE_IN_HZ = 8000;
+    static final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ,
+                    AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT);
+    AudioRecord mAudioRecord;
+    boolean isGetVoiceRun;
+    Object mLock;
+
     private AudioRecord ar = null;
     private int minSize;
 
@@ -50,6 +58,7 @@ public class SoundMonitor extends CordovaPlugin {
         this.amplitude = 0;
         this.timeStamp = 0;
         this.setStatus(SoundMonitor.STOPPED);
+        mLock = new Object();
     }
 
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -185,8 +194,14 @@ public class SoundMonitor extends CordovaPlugin {
         // return max;
 
         if (mRecorder != null) {
-            double pressure = mRecorder.getMaxAmplitude() / 51805.5336;
-            return 20 * Math.log10(pressure / (2*Math.pow(10, -5)));
+            // double pressure = mRecorder.getMaxAmplitude() / 51805.5336;
+            // return 20 * Math.log10(pressure / (2*Math.pow(10, -5)));
+
+            double ratio = (double)mRecorder.getMaxAmplitude() / 1;
+            double db = 0;
+            if (ratio > 1) {
+                db = 20 * Math.log10(ratio);
+            }
         } else {
             return 0;
         }
@@ -203,6 +218,54 @@ public class SoundMonitor extends CordovaPlugin {
     private void setStatus(int status) {
         this.status = status;
     }
+
+    public double getNoiseLevel() {
+            if (isGetVoiceRun) {
+                return;
+            }
+            mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
+                    SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT,
+                    AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
+            if (mAudioRecord == null) {
+            }
+            isGetVoiceRun = true;
+
+            double final_volume = 0;
+
+            cordova.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+                    mAudioRecord.startRecording();
+                    short[] buffer = new short[BUFFER_SIZE];
+                    while (isGetVoiceRun) {
+                        //r是实际读取的数据长度，一般而言r会小于buffersize
+                        int r = mAudioRecord.read(buffer, 0, BUFFER_SIZE);
+                        long v = 0;
+                        // 将 buffer 内容取出，进行平方和运算
+                        for (int i = 0; i < buffer.length; i++) {
+                            v += buffer[i] * buffer[i];
+                        }
+                        // 平方和除以数据总长度，得到音量大小。
+                        double mean = v / (double) r;
+                        double volume = 10 * Math.log10(mean);
+                        final_volume = volume;
+                        // 大概一秒十次
+                        synchronized (mLock) {
+                            try {
+                                mLock.wait(100);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    mAudioRecord.stop();
+                    mAudioRecord.release();
+                    mAudioRecord = null;
+                }
+            }).start();
+
+            return final_volume;
+        }
 
     private JSONObject getSoundAmplitude() throws JSONException {
         JSONObject obj = new JSONObject();
